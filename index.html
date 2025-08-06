@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack Visualizer by Sayandip Bera</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .main-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+
+        .creator {
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+            color: #4ecdc4;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .size-config {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .size-config h3 {
+            font-family: 'Orbitron', monospace;
+            color: #4ecdc4;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .size-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .size-input {
+            width: 80px;
+            padding: 10px;
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .size-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .set-size-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .set-size-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        .current-size {
+            font-size: 14px;
+            color: #a0a0a0;
+            margin-top: 10px;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section h4 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .value-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .value-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .operations {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .operation-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .operation-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .operation-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-push {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-pop {
+            background: linear-gradient(45deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .btn-top {
+            background: linear-gradient(45deg, #2196F3, #0b7dda);
+            color: white;
+        }
+
+        .btn-clear {
+            background: linear-gradient(45deg, #ff9800, #e68900);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .operation-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .operation-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .operation-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stack-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            color: #a0a0a0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .stack-visualization {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            min-height: 600px;
+            position: relative;
+        }
+
+        .stack-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stack-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: #4ecdc4;
+        }
+
+        .stack-status {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-label {
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+
+        .status-value {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .stack-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 8px;
+            min-height: 450px;
+            justify-content: flex-start;
+            padding: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .stack-base {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 8px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .stack-item {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 18px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            transition: all 0.3s ease;
+            animation: pushAnimation 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .stack-item::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stack-item:hover::before {
+            opacity: 1;
+        }
+
+        .stack-item.top-item {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-color: #FFD700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+            animation: topGlow 1.5s ease-in-out;
+            transform: scale(1.05);
+        }
+
+        .stack-item.popping {
+            animation: popAnimation 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes pushAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.5) rotate(10deg);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.1) rotate(-5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes popAnimation {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-30px) scale(1.2) rotate(15deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(0.3) rotate(45deg);
+            }
+        }
+
+        @keyframes topGlow {
+            0%, 100% { 
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
+                transform: scale(1.08);
+            }
+        }
+
+        .empty-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 20px;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 20px 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border-left-color: #2E7D32;
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, #f44336, #da190b);
+            border-left-color: #C62828;
+        }
+
+        .notification.info {
+            background: linear-gradient(45deg, #2196F3, #0b7dda);
+            border-left-color: #1565C0;
+        }
+
+        .notification.warning {
+            background: linear-gradient(45deg, #ff9800, #e68900);
+            border-left-color: #E65100;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .operations {
+                grid-template-columns: 1fr;
+            }
+            
+            .stack-status {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .notification {
+                right: 10px;
+                left: 10px;
+                transform: translateY(-100px);
+            }
+            
+            .notification.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation" id="bgAnimation"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">🔄 STACK VISUALIZER</h1>
+            <p class="subtitle">Advanced Data Structure Visualization</p>
+            <p class="creator">by Sayandip Bera</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-panel">
+                <div class="size-config">
+                    <h3>📏 Stack Configuration</h3>
+                    <div class="size-input-group">
+                        <input type="number" class="size-input" id="stackSizeInput" value="5" min="1" max="20">
+                        <button class="set-size-btn" onclick="setStackSize()">Set Size</button>
+                    </div>
+                    <div class="current-size">Current Max Size: <span id="currentMaxSize">5</span></div>
+                </div>
+                
+                <div class="input-section">
+                    <h4>💾 Enter Value</h4>
+                    <input type="text" class="value-input" id="stackInput" placeholder="Enter value to push" maxlength="15">
+                </div>
+                
+                <div class="operations">
+                    <button class="operation-btn btn-push" onclick="pushToStack()">📥 Push</button>
+                    <button class="operation-btn btn-pop" onclick="popFromStack()">📤 Pop</button>
+                    <button class="operation-btn btn-top" onclick="showTop()">👁️ Top</button>
+                    <button class="operation-btn btn-clear" onclick="clearStack()">🗑️ Clear</button>
+                </div>
+                
+                <div class="stack-info">
+                    <div class="info-item">
+                        <div class="info-label">Size</div>
+                        <div class="info-value" id="stackSize">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Top Element</div>
+                        <div class="info-value" id="topElement">None</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value" id="stackStatus">Empty</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Capacity</div>
+                        <div class="info-value" id="stackCapacity">5</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stack-visualization">
+                <div class="stack-header">
+                    <h3 class="stack-title">Stack Memory</h3>
+                    <div class="stack-status">
+                        <div class="status-item">
+                            <span class="status-label">Used</span>
+                            <span class="status-value" id="usedSlots">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Free</span>
+                            <span class="status-value" id="freeSlots">5</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Total</span>
+                            <span class="status-value" id="totalSlots">5</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stack-container" id="stackContainer">
+                    <div class="stack-base"></div>
+                    <div class="empty-message" id="emptyMessage">
+                        Stack is empty<br>
+                        <small>Push some elements to get started!</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AdvancedStackVisualizer {
+            constructor() {
+                this.stack = [];
+                this.maxSize = 5;
+                this.stackContainer = document.getElementById('stackContainer');
+                this.emptyMessage = document.getElementById('emptyMessage');
+                this.inputElement = document.getElementById('stackInput');
+                
+                // Add enter key support
+                this.inputElement.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.push();
+                    }
+                });
+                
+                this.initializeBackground();
+                this.updateDisplay();
+            }
+            
+            initializeBackground() {
+                const bgAnimation = document.getElementById('bgAnimation');
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.width = Math.random() * 4 + 2 + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 6 + 's';
+                    particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                    bgAnimation.appendChild(particle);
+                }
+            }
+            
+            setMaxSize(size) {
+                if (size < 1 || size > 20) {
+                    this.showNotification('⚠️ Stack size must be between 1 and 20!', 'warning');
+                    return;
+                }
+                
+                if (size < this.stack.length) {
+                    this.showNotification('⚠️ Cannot set size smaller than current stack size!', 'warning');
+                    return;
+                }
+                
+                this.maxSize = size;
+                document.getElementById('currentMaxSize').textContent = size;
+                document.getElementById('stackCapacity').textContent = size;
+                document.getElementById('totalSlots').textContent = size;
+                this.updateDisplay();
+                this.showNotification(`✅ Stack size set to ${size}`, 'success');
+            }
+            
+            push(value = null) {
+                const inputValue = value || this.inputElement.value.trim();
+                
+                if (!inputValue) {
+                    this.showNotification('⚠️ Please enter a value to push!', 'warning');
+                    this.inputElement.focus();
+                    return;
+                }
+                
+                // Check for stack overflow
+                if (this.stack.length >= this.maxSize) {
+                    this.showNotification('🚫 STACK OVERFLOW! Cannot push more elements.', 'error');
+                    return;
+                }
+                
+                this.stack.push(inputValue);
+                this.inputElement.value = '';
+                this.updateDisplay();
+                this.showNotification(`✅ Pushed "${inputValue}" to stack`, 'success');
+                
+                // Add push animation
+                const newItem = this.stackContainer.querySelector('.stack-item:last-child');
+                if (newItem) {
+                    newItem.style.animation = 'none';
+                    setTimeout(() => {
+                        newItem.style.animation = 'pushAnimation 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    }, 10);
+                }
+            }
+            
+            pop() {
+                // Check for stack underflow
+                if (this.stack.length === 0) {
+                    this.showNotification('🚫 STACK UNDERFLOW! Cannot pop from empty stack.', 'error');
+                    return null;
+                }
+                
+                const poppedValue = this.stack.pop();
+                
+                // Add popping animation to the top element
+                const topItem = this.stackContainer.querySelector('.stack-item:last-child');
+                if (topItem) {
+                    topItem.classList.add('popping');
+                    setTimeout(() => {
+                        this.updateDisplay();
+                    }, 300);
+                } else {
+                    this.updateDisplay();
+                }
+                
+                this.showNotification(`📤 Popped "${poppedValue}" from stack`, 'info');
+                return poppedValue;
+            }
+            
+            top() {
+                if (this.stack.length === 0) {
+                    this.showNotification('⚠️ Stack is empty! No top element.', 'warning');
+                    return null;
+                }
+                
+                const topValue = this.stack[this.stack.length - 1];
+                
+                // Highlight the top element
+                const topItem = this.stackContainer.querySelector('.stack-item:last-child');
+                if (topItem) {
+                    topItem.classList.add('top-item');
+                    setTimeout(() => {
+                        topItem.classList.remove('top-item');
+                    }, 1500);
+                }
+                
+                this.showNotification(`👁️ Top element is "${topValue}"`, 'info');
+                return topValue;
+            }
+            
+            clear() {
+                if (this.stack.length === 0) {
+                    this.showNotification('⚠️ Stack is already empty!', 'warning');
+                    return;
+                }
+                
+                const clearedCount = this.stack.length;
+                this.stack = [];
+                this.updateDisplay();
+                this.showNotification(`🗑️ Cleared ${clearedCount} elements from stack!`, 'success');
+            }
+            
+            updateDisplay() {
+                // Clear current stack items (keep base and empty message)
+                const stackItems = this.stackContainer.querySelectorAll('.stack-item');
+                stackItems.forEach(item => item.remove());
+                
+                if (this.stack.length === 0) {
+                    this.emptyMessage.style.display = 'block';
+                } else {
+                    this.emptyMessage.style.display = 'none';
+                    
+                    // Create stack items
+                    this.stack.forEach((item, index) => {
+                        const stackItem = document.createElement('div');
+                        stackItem.className = 'stack-item';
+                        stackItem.textContent = item;
+                        stackItem.title = `Index: ${index}, Value: ${item}`;
+                        this.stackContainer.appendChild(stackItem);
+                    });
+                }
+                
+                // Update info displays
+                document.getElementById('stackSize').textContent = this.stack.length;
+                document.getElementById('topElement').textContent = this.stack.length > 0 ? this.stack[this.stack.length - 1] : 'None';
+                document.getElementById('usedSlots').textContent = this.stack.length;
+                document.getElementById('freeSlots').textContent = this.maxSize - this.stack.length;
+                
+                // Update status
+                let status = 'Empty';
+                if (this.stack.length > 0 && this.stack.length < this.maxSize) {
+                    status = 'Active';
+                } else if (this.stack.length === this.maxSize) {
+                    status = 'Full';
+                }
+                document.getElementById('stackStatus').textContent = status;
+            }
+            
+            showNotification(message, type = 'info') {
+                // Remove existing notification
+                const existingNotification = document.querySelector('.notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                // Trigger show animation
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+                
+                // Remove notification after delay
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 400);
+                }, 3000);
+            }
+        }
+        
+        // Initialize the advanced stack visualizer
+        const stackViz = new AdvancedStackVisualizer();
+        
+        // Global functions for button clicks
+        function setStackSize() {
+            const sizeInput = document.getElementById('stackSizeInput');
+            const size = parseInt(sizeInput.value);
+            stackViz.setMaxSize(size);
+        }
+        
+        function pushToStack() {
+            stackViz.push();
+        }
+        
+        function popFromStack() {
+            stackViz.pop();
+        }
+        
+        function showTop() {
+            stackViz.top();
+        }
+        
+        function clearStack() {
+            stackViz.clear();
+        }
+        
+        // Add some sample data on load for demonstration
+        setTimeout(() => {
+            stackViz.push('A');
+            setTimeout(() => stackViz.push('B'), 300);
+            setTimeout(() => stackViz.push('C'), 600);
+        }, 1500);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96b0612de667338a',t:'MTc1NDUwMjY1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
